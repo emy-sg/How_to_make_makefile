@@ -1,0 +1,216 @@
+Makefiles are a simple way to organize code compilation.
+
+Normally, we would compile this collection of code by executing the following command:
+
+gcc -o namefile main.c mainfct.c ; ./namefile
+
+without a makefile, the typical approach to the test/modify/debug cycle is to use the up arrow in a terminal .
+
+The -I.  (-i.) is included so that gcc will look in the current directory (.) for the include file.h
+
+The -o this compiles the .c files and name the executable file : namefile
+
+The inconvenience of this method is that if u''re only making changes to one .c file, recompiling all of them every time is also time-consuming and inefficient.
+
+
+#######################################################################################
+
+
+
+
+Makefile 1 :
+
+filemake : main.c mainfct.c
+
+gcc -o filemake main.c mainfct.c -I.
+
+type "make" on the command line it will execute the compile command as u have written it in the makefile
+
+Note that "make" with no arguments executes the first rule in the file.
+
+By putting the list of files on which the command depends on the first line, MAKE knows that the rule filemake needs to be executed if any of those files change, so u have saved time by just looking for your last compile command.
+
+One very important thing to note is that there is a tab at the beginning of any command and "MAKE" will not be happy if it''s not there (before the gcc command in the makefile there is a tab).
+
+
+Makefile 2 :
+
+CC=gcc
+
+CFLAGS=I.
+
+filemake:  main.o mainfct.o (edited)
+
+(Tab)  $(CC) -o filemake main.o mainfct.o (edited)
+
+So now we''ve defined some constants CC and CFLAGS.
+
+This special constants that communicate to make how we want to compile the files .c.
+
+In particular the macro is the CC is the C compiler to use.
+
+CFLAGS is the list of flags to pass to the compilation command.
+
+Note, using this form of makefile is sufficient for most small scale projects.
+
+However, there is one thing missing: dependency on the include files.
+
+we need dependency, because if u were to make a change to libft.h, MAKE would not recompile the .c files, even though they needed to be. So we need to tell make that all .c files depend on certain .h files.
+
+
+Makefile 3 :
+
+CC=gcc
+
+CFLAGS=-I.
+
+DEPS = libft.h
+
+%.o:  %.c $(DEPS)
+
+$(CC) -c -o $@ $< $(CFLAGS)
+
+filemake: main.o mainfct.o (edited)
+
+$(CC) -o filemake main.o mainfct.o (edited)
+
+The DEPS macro addition, which is the set of .h files on which the .c files depend.
+
+Then we define a rule that the .o file depends upon the .c version of the file and the .h files  included in the DEPS macro.
+
+First creates the macro DEPS, which is the set of .h files on which the .c files depend.
+
+Then we define a rule that applies to all files ending in the .o suffix.
+
+The rule then says that , to generate the .o file, make needs to compile the .c file using the compiler defined in the CC macro.
+
+The -c flag says to generate the object file
+
+the  -o $@   :says to put the output of the compilation in the file named on the left side of the :
+
+the   $< is the first item in the dependencies list
+
+and the CFLAGS macro is defined as above.
+
+
+Makefile 4:
+
+CC=gcc
+
+CFLAGS=-I.
+
+DEPS=libft.h
+
+OBJ = main.o mainfct.o
+
+%.o : %.c $(DEPS)
+
+$(CC) -c -o $@ $< $(CFLAGS) (edited)
+
+filemake: $(OBJ)
+
+$(CC) -o $@ $^ $(CFLAGS)
+
+Simplification, let's use the special macros   $@    and       $<  ,which are the left and right sides of the : , In the next example, all of the include files should be listed as part of the macro DEPS,  and all of the object files should be listed as part of the macro OBJ.
+
+
+########################################################################################
+
+NAME = libft.a
+FLAGS = -Wall -Wextra -Werror
+SRC	= ft_memset.c
+BSRC = ft_lstnew_bonus.c
+OBJ = $(SRC:.c=.o)
+OUTPUT = $(BSRC:.c=.o)
+all : $(NAME)
+$(NAME):
+	gcc $(FLAGS) -c $(SRC)
+	ar rc $(NAME) $(OBJ)
+	ranlib $(NAME)
+bonus :
+	gcc $(FLAGS) -c $(SRC) $(BSRC)
+	ar rc $(NAME) $(OBJ) $(OUTPUT)
+	ranlib $(NAME)
+clean :
+	rm -f $(OBJ) $(OUTPUT)
+fclean : clean
+	rm -f $(NAME)
+re : fclean all
+
+
+######################################################################################
+
+# we use the -o option to specify the output file name.
+#  CC AND CFLAGS communicate to MAKE how we want to compile the files *.c .
+# Compile and link source hello.c into executable executable_hello
+# Compile and link source hellp.cpp into executale hello.exe
+CC = gcc
+NAME = awesome_program
+CFLAGS = -Wall -Wextra -Werror
+SRC = *.c
+OBJ = $(SRC:.c = .o)
+# # -Wall -Wextra -Werror
+# all :
+# 	# gcc -o ${NAME} ${SRC}
+# # A few commonly-used GCC compiler options are :
+# #   -o : specifies the output executable filename.
+# #   -Wall : prints "all" Warning messages.
+# #   -g : generates additional symbolic debugging information for use with gdb debugger.
+# 	# gcc -Wall -g -o ${NAME} ${SRC}
+# # Compile and Link Separately
+# #  The above command compile the source file into object file and link with other object files and system libraries
+# #     into executable in one step.
+# ############# You may separate compile and link in two steps as follows :################
+# #  Compile- only with -c option
+# 	$(CC) -c ${SRC}
+# #  Link object file(s) into an executable
+# 	$(CC) -o  ${NAME} -L /usr/local/lib -lmlx -framework OpenGL -framework AppKit -g -fsanitize=address *.o
+# # -c : Compile into object file "hello.o"
+# #     =====> By default, the object file has the same name as the source file with extension of ".o". No linking with other files or libraries.
+# #  Linking is performed when the input file are object files ".o"
+# #  -S : the option specifies to produce assembly code, instead of object code. The resultant assembly file is "hello.s".
+# 	ar t $(NAME)
+all: $(OBJ)
+# r : This used to create archive, insert files in archive. If any member filename does not exist it throws an error. By default, it adds a new member at end of the file.
+	# ar r ${NAME} ${OBJ}
+# v : The modifier v gives a line or output with letter a or r indicating if the file is appended(added) or not.
+	ar rcv ${NAME} ${OBJ}
+	# ar t0 ${NAME} ${OBJ}
+# delete object file
+clean :
+	rm -f *.o
+# delete executable file	
+fclean : clean
+	rm -f ${NAME}
+re : fclean all
+
+
+#################################################################################################################
+
+NAME = pipex
+
+DEPS = pipex.h
+
+CC = gcc
+
+CFLAGS = -Wall -Wextra -Werror
+
+SRCS = main.c \
+
+OBJS = $(SRCS:.c=.o)
+
+all: $(NAME)
+
+$(NAME):
+	$(CC) $(CFLAGS) -c $(SRCS)
+	ar -rc $(NAME) $(OBJS)
+	ranlib $(NAME)
+clean:
+	rm -f $(OBJS)
+
+fclean: clean
+	rm -f $(NAME)
+
+re: fclean all
+
+##################################################################################
