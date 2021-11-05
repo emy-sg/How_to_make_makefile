@@ -214,3 +214,67 @@ fclean: clean
 re: fclean all
 
 ##################################################################################
+
+NAME = pipex
+
+CC = gcc
+
+#  complitation pipeline:
+#
+#    preprocessing : replace the macros and header files in the sources files.
+#    obj files      : compile and transform the sources files to binary files.
+#    linking          : link all the objects files to create one executable binary.
+#
+#    $(CC) -E $(SRCS) : stops in the preprocessing step.
+#    $(CC) -c $(SRCS) : stops in the creation of the objects/binary files.
+#    $(CC) $(SRCS)      : continue all the process, and do the linking, until the exectutable.
+#
+#       |preprocessing|  ---> | obj files | --> linking  --> .exec
+#                 |                      |                            |
+#                 |                      |                            |
+#                 |                      |                            |
+#
+# $(CC)           -E                     -c
+#
+#                 |                      |
+#                 |                      |
+#    ----------------------------------------------------------------->
+#                 .c                    .o                     ./a.out
+
+#CFLAGS = -Wall -Wextra -Werror -c \
+
+CFLAGS = -Wall -Wextra -Werror -fsanitize=address
+
+#Make :
+# -C dir : change to directory to "dir.
+
+MAKE = make -C
+
+SRCS = main.c
+
+OBJS = $(SRCS:.c=.o)
+
+all: $(NAME)
+
+$(NAME):
+    @$(MAKE) libft
+    @$(CC) $(CFLAGS) libft/libft.a $(SRCS) -o $(NAME)
+
+
+#$(NAME): $(SRCS)
+#    @$(MAKE) libft
+#    @$(CC) $(CFLAGS) $(SRCS)
+#    @$(CC) libft/libft.a $(OBJS) -o $(NAME)
+
+clean:
+    @$(MAKE) libft clean
+    @rm -f $(OBJS)
+
+fclean: clean
+    @$(MAKE) libft fclean
+    @rm -f $(NAME)
+
+re: fclean all
+
+
+####################################################################################
